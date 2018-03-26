@@ -9,7 +9,7 @@ const namespace = 'axios-retry';
 export function isNetworkError(error) {
   return !error.response
     && Boolean(error.code) // Prevents retrying cancelled requests
-    && error.code !== 'ECONNABORTED' // Prevents retrying timed out requests
+    // && error.code !== 'ECONNABORTED' // Prevents retrying timed out requests
     && isRetryAllowed(error); // Prevents retrying unsafe errors
 }
 
@@ -124,9 +124,10 @@ function retryLogic(axios, res, defaultOptions, iserror) {
     return Promise.reject(res);
   }
 
+  var defaultCondition = iserror? isNetworkOrIdempotentRequestError: () => false;
   const {
     retries = 3,
-    retryCondition = iserror? isNetworkOrIdempotentRequestError: () => false,
+    retryCondition = defaultCondition,
     retryDelay = noDelay
   } = getRequestOptions(config, defaultOptions);
 
