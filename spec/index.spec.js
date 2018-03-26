@@ -6,7 +6,6 @@ import {
   isNetworkError,
   isSafeRequestError,
   isIdempotentRequestError,
-  exponentialDelay,
   isRetryableError
 } from '../es/index';
 
@@ -34,26 +33,6 @@ describe('axiosRetry(axios, { retries, retryCondition })', () => {
   afterEach(() => {
     nock.cleanAll();
     nock.enableNetConnect();
-  });
-  describe('axiosRetry(axios, { retries, retryDelay })', () => {
-    describe('when custom retryDelay function is supplied', () => {
-      it('should execute for each retry', done => {
-        const client = axios.create();
-        setupResponses(client, [
-          () => nock('http://example.com').get('/test').replyWithError(NETWORK_ERROR),
-          () => nock('http://example.com').get('/test').reply(200, 'It worked!')
-        ]);
-
-        const retryCondition = (error) => {
-          expect(error).toBe(NETWORK_ERROR);
-          done();
-          return false;
-        };
-
-        axiosRetry(client, { retries: 1, retryCondition });
-
-        client.get('http://example.com/test').catch(() => {});
-    });
   });
 
   describe('when the response is successful', () => {
@@ -260,7 +239,6 @@ describe('axiosRetry(axios, { retries, retryCondition })', () => {
   });
 });
 
-
 describe('isNetworkError(error)', () => {
   it('should be true for network errors like connection refused', () => {
     const connectionRefusedError = new Error();
@@ -390,21 +368,6 @@ describe('isIdempotentRequestError(error)', () => {
     errorResponse.code = 'ECONNABORTED';
     errorResponse.config = { method: 'get' };
     expect(isIdempotentRequestError(errorResponse)).toBe(false);
-  });
-});
-
-describe('exponentialDelay', () => {
-  it('should return exponential retry delay', () => {
-    function assertTime(retryNumber) {
-      const min = (Math.pow(2, retryNumber) * 100);
-      const max = (Math.pow(2, retryNumber * 100) * 0.2);
-
-      const time = exponentialDelay(retryNumber);
-
-      expect((time >= min && time <= max)).toBe(true);
-    }
-
-    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].forEach(assertTime);
   });
 });
 

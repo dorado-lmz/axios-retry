@@ -117,6 +117,7 @@ function fixConfig(axios, config) {
 
 function retryLogic(axios, res, defaultOptions, iserror) {
   const config = res.config;
+  iserror = iserror === 2;
 
   // If we have no information to retry the request
   if (!config) {
@@ -125,7 +126,7 @@ function retryLogic(axios, res, defaultOptions, iserror) {
 
   const {
     retries = 3,
-    retryCondition = isNetworkOrIdempotentRequestError,
+    retryCondition = iserror? isNetworkOrIdempotentRequestError: () => false,
     retryDelay = noDelay
   } = getRequestOptions(config, defaultOptions);
 
@@ -152,7 +153,7 @@ function retryLogic(axios, res, defaultOptions, iserror) {
       setTimeout(() => resolve(axios(config)), delay)
     );
   }
-  if (iserror === 2) {
+  if (iserror) {
     return Promise.reject(res);
   }
 
