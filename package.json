@@ -1,6 +1,6 @@
 {
   "name": "axios-retry-ano",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Axios plugin that intercepts failed requests and retries them whenever possible.",
   "main": "index.js",
   "directories": {
